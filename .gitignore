@@ -1,0 +1,40 @@
+# CMake
+*build*/
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+
+# C++
+*.obj
+*.o
+*.lo
+*.slo
+*.gch
+*.pch
+*.exe
+
+# Project executable
+simple_http_0_server
+
+# Vim
+# swap
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-v][a-z]
+[._]sw[a-p]
+# session
+Session.vim
+# temporary
+.netrwhist
+*~
+# auto-generated tag files
+tags
+# you-complete-me
+.ycm_extra_conf.py*
+
