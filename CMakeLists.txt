@@ -8,7 +8,17 @@ set(CMAKE_CXX_STANDARD 11)
 
 project(simple_http_0_server)
 
-add_executable(${PROJECT_NAME} main.cpp)
+find_package(Threads REQUIRED)
+
+set(SRCS
+    common.h
+    server.cpp
+    server.h
+    )
+add_library(SourcesLib OBJECT ${SRCS})
+
+add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:SourcesLib> main.cpp)
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 
