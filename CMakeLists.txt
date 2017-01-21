@@ -10,6 +10,7 @@ project(simple_http_0_server)
 
 find_package(Threads REQUIRED)
 
+add_definitions(-std=c++11)
 add_subdirectory(boost_parser)
 
 set(SRCS
