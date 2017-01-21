@@ -8,8 +8,12 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include <mutex>
+#include <set>
 #include <string>
 #include <thread>
+
+#include "boost_parser/request.hpp"
 
 namespace http {
 /**
@@ -36,7 +40,13 @@ class server {
         void joinToAcceptorThread();
 
     private:
-        void acceptConnections();
+        static void sigHandler(int sig);
+        static std::mutex instancesMutex;
+        static std::set<server*> serverInstances;
+
+    private:
+        void sigintHandler();
+        void acceptConnections() const;
 
     private:
         static constexpr int INVALID_SOCK = -1;
