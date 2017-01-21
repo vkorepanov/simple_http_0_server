@@ -10,6 +10,8 @@ project(simple_http_0_server)
 
 find_package(Threads REQUIRED)
 
+add_subdirectory(boost_parser)
+
 set(SRCS
     common.h
     server.cpp
@@ -18,7 +20,8 @@ set(SRCS
 add_library(SourcesLib OBJECT ${SRCS})
 
 add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:SourcesLib> main.cpp)
-target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${PROJECT_NAME} PRIVATE BoostParserLib)
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 
