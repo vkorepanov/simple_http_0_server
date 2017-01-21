@@ -19,7 +19,7 @@ set(SRCS
     )
 add_library(SourcesLib OBJECT ${SRCS})
 
-add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:SourcesLib> main.cpp)
+add_executable(final $<TARGET_OBJECTS:SourcesLib> main.cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(${PROJECT_NAME} PRIVATE BoostParserLib)
 
