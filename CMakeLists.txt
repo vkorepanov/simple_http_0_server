@@ -20,15 +20,15 @@ set(SRCS
 add_library(SourcesLib OBJECT ${SRCS})
 
 add_executable(final $<TARGET_OBJECTS:SourcesLib> main.cpp)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(${PROJECT_NAME} PRIVATE BoostParserLib)
+target_link_libraries(final PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(final PRIVATE BoostParserLib)
 
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+target_compile_options(final PRIVATE -Wall -Wextra -Wpedantic -Werror)
 
 if (UNIX AND NOT "${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
     add_custom_target(${PROJECT_NAME}-symlink
         ALL ln --force -s
-            ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
+            ${CMAKE_CURRENT_BINARY_DIR}/final
             ${CMAKE_SOURCE_DIR}/${PROJECT_NAME}
         DEPENDS ${PROJECT_NAME})
 
