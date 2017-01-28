@@ -25,14 +25,3 @@ target_link_libraries(final PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(final PRIVATE BoostParserLib)
 
 target_compile_options(final PRIVATE -Wall -Wextra -Wpedantic -Werror)
-
-if (UNIX AND NOT "${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
-    add_custom_target(${PROJECT_NAME}-symlink
-        ALL ln --force -s
-            ${CMAKE_CURRENT_BINARY_DIR}/final
-            ${CMAKE_SOURCE_DIR}/${PROJECT_NAME}
-        DEPENDS ${PROJECT_NAME})
-
-    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
-        ${CMAKE_SOURCE_DIR}/${PROJECT_NAME})
-endif()

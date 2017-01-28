@@ -25,6 +25,26 @@
 #include "optional.h"
 
 namespace {
+template <typename S>
+inline S& operator<<(S& s, const http::header& h) {
+    return s << h.name << ": " << h.value;
+}
+
+template <typename S, typename T>
+inline S& operator<<(S& s, const std::vector<T>& v) {
+    std::for_each(v.begin(), v.end(), [&s](const T& t) {
+        s << t << ' ';
+    });
+
+    return s << std::endl;
+}
+
+template <typename S>
+inline S& operator<<(S& s, const http::request& request) {
+    return s << request.method << "HTTP/" << request.http_version_major << '.'
+      << request.http_version_minor << ' ' << request.headers;
+}
+
 inline sockaddr* sockaddrCast(sockaddr_in* v) {
     return reinterpret_cast<sockaddr*>(v);
 }
@@ -75,6 +95,7 @@ void replyContents(int clientSocket, int status, const std::string& statusStr
     writeStringStream << CRLF << content;
 
     const auto& writeStr = writeStringStream.str();
+    std::cout << "Reply str: " << writeStr << std::endl;
     size_t writed = 0;
     while (writed < writeStr.size()) {
         writed = callStdlibFunc([]{}, write, clientSocket
@@ -91,24 +112,30 @@ std::vector<http::header> getHeaders(size_t contentSize) {
 }
 
 void replyNotFound(int clientSocket) {
-    replyContents(clientSocket, 404, "Not found", getHeaders(0), std::string{});
+    static const std::string NOT_FOUND_CONTEXT = "Not found";
+    replyContents(clientSocket, 404, "Not found"
+                , getHeaders(NOT_FOUND_CONTEXT.size()), NOT_FOUND_CONTEXT);
 }
 
-void reply(int clientSocket, const http::request& request) {
-    if (request.method != "GET"
-            || request.http_version_major > 1
-            || request.http_version_major > 0) {
+void reply(int clientSocket, const http::request& request
+         , const std::string& dir) {
+    if (request.method != "GET") {
+        std::cerr << "Method " << request.method
+            << " is not supported" << std::endl;
+        replyNotFound(clientSocket);
         return shutdownSock(clientSocket);
     }
 
     auto maybeRequestFile = parseUri(request.uri);
     if (!maybeRequestFile) {
+        std::cerr << "Can't parse URI: " << request.uri << std::endl;
         return replyNotFound(clientSocket);
     }
 
-    const auto& requestFile = maybeRequestFile.take();
+    const auto requestFile = dir + maybeRequestFile.take();
     std::ifstream ifs(requestFile);
     if (!ifs.good()) {
+        std::cerr << "File " << requestFile << " not found" << std::endl;
         return replyNotFound(clientSocket);
     }
 
@@ -119,7 +146,7 @@ void reply(int clientSocket, const http::request& request) {
     replyContents(clientSocket, 200, "OK", getHeaders(bufStr.size()), bufStr);
 }
 
-void handleConnection(int clientSocket) {
+void handleConnection(int clientSocket, const std::string& dir) {
     constexpr size_t BUF_SIZE = 65535;
     char buffer[BUF_SIZE];
     bzero(buffer, BUF_SIZE);
@@ -127,6 +154,7 @@ void handleConnection(int clientSocket) {
         const auto bytesRead = callStdlibFunc([]{}, read, clientSocket
                 , buffer, BUF_SIZE);
         if (bytesRead <= 0) {
+            std::cerr << "Can't read request from client" << std::endl;
             break;
         }
 
@@ -135,15 +163,16 @@ void handleConnection(int clientSocket) {
         const auto parseResult = std::get<0>(parser.parse(request, buffer
                                            , buffer + BUF_SIZE));
         if (parseResult == http::request_parser::good) {
-            return reply(clientSocket, request);
+            std::cout << "Request was accepted: " << request << std::endl;
+            return reply(clientSocket, request, dir);
         }
         else if (parseResult == http::request_parser::bad) {
-            std::cout << "bad parse" << std::endl;
             std::cerr << "Bad request: " << std::endl << buffer << std::endl;
             break;
         }
     }
 
+    replyNotFound(clientSocket);
     shutdownSock(clientSocket);
 }
 }
@@ -154,7 +183,11 @@ std::set<server*> server::serverInstances;
 
 server::server(const std::string& address, short port
              , const std::string& rootDir)
-    : m_rootDir(rootDir.empty() ? "." : rootDir)
+    : m_rootDir(rootDir.empty()
+                ? "./"
+                : rootDir.back() != '/'
+                    ? rootDir + '/'
+                    : rootDir)
 {
     signal(SIGINT, server::sigHandler);
     const auto shutdownOnError = [this] {
@@ -216,7 +249,8 @@ void server::acceptConnections() const {
             break;
 
         std::cout << "Connected client: " << sock.sin_addr.s_addr << std::endl;
-        std::async(std::launch::async, handleConnection, clientSocket);
+        std::async(std::launch::async, handleConnection
+                 , clientSocket, m_rootDir);
     }
 }
 

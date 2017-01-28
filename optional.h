@@ -40,6 +40,7 @@ class optional
 
         T&& take() noexcept {
             assert(initialized);
+            initialized = false;
             return std::move(*castValue());
         }
 
