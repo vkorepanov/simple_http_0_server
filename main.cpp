@@ -53,8 +53,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    // TODO: daemonize process.
-    // callStdlibFunc(abort, daemon, 1, 1);
+     callStdlibFunc(abort, daemon, 1, 1);
 
     std::cout << "[" << getpid() << "]"           << std::endl
         << "address = "          << address       << std::endl
