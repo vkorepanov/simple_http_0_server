@@ -54,6 +54,7 @@ inline sockaddr* sockaddrCast(sockaddr_in* v) {
 
 void shutdownSock(int sock) {
     shutdown(sock, SHUT_RDWR);
+    close(sock);
 }
 
 optional<std::string> parseUri(const std::string& uri) {
