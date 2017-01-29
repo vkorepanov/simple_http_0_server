@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-     callStdlibFunc(abort, daemon, 1, 1);
+    callStdlibFunc(abort, daemon, 1, 1);
 
     std::cout << "[" << getpid() << "]"           << std::endl
         << "address = "          << address       << std::endl

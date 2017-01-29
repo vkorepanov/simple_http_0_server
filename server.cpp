@@ -141,7 +141,8 @@ void reply(int clientSocket, const http::request& request
 
     std::stringstream buffer;
     buffer << ifs.rdbuf();
-    const auto& bufStr = buffer.str();
+    const auto bufStr = buffer.str();
+    ifs.close();
 
     replyContents(clientSocket, 200, "OK", getHeaders(bufStr.size()), bufStr);
 }
