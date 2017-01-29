@@ -12,9 +12,12 @@
 #include <future>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <netinet/in.h>
 #include <signal.h>
 #include <stdexcept>
+#include <stdio.h>
+#include <string.h>
 #include <strings.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -133,18 +136,27 @@ void reply(int clientSocket, const http::request& request
     }
 
     const auto requestFile = dir + maybeRequestFile.take();
-    std::ifstream ifs(requestFile);
-    if (!ifs.good()) {
-        std::cerr << "File " << requestFile << " not found" << std::endl;
-        return replyNotFound(clientSocket);
+    std::string buffer;
+
+    {
+        static const auto FD_DELETER = [](FILE* fd) {
+            if (fd) fclose(fd); };
+        const auto fd = std::unique_ptr<FILE, decltype(FD_DELETER)>(
+                fopen(requestFile.c_str(), "r"), FD_DELETER);
+        if (fd <= 0) {
+            std::cerr << "Can't open file: " << requestFile << std::endl;
+            return replyNotFound(clientSocket);
+        }
+
+        constexpr size_t SIZE = 65534;
+        char bufStr[SIZE + 1] = {0};
+        while (fread(bufStr, sizeof(char), SIZE - 1, fd.get())) {
+            bufStr[SIZE] = 0;
+            buffer += bufStr;
+        }
     }
 
-    std::stringstream buffer;
-    buffer << ifs.rdbuf();
-    const auto bufStr = buffer.str();
-    ifs.close();
-
-    replyContents(clientSocket, 200, "OK", getHeaders(bufStr.size()), bufStr);
+    replyContents(clientSocket, 200, "OK", getHeaders(buffer.size()), buffer);
 }
 
 void handleConnection(int clientSocket, const std::string& dir) {
