@@ -44,8 +44,9 @@ inline S& operator<<(S& s, const std::vector<T>& v) {
 
 template <typename S>
 inline S& operator<<(S& s, const http::request& request) {
-    return s << request.method << "HTTP/" << request.http_version_major << '.'
-      << request.http_version_minor << ' ' << request.headers;
+    return s << request.method << " HTTP/" << request.http_version_major << '.'
+      << request.http_version_minor
+      << std::endl << "URI=" << request.uri << std::endl << request.headers;
 }
 
 inline sockaddr* sockaddrCast(sockaddr_in* v) {
@@ -81,7 +82,7 @@ optional<std::string> parseUri(const std::string& uri) {
         result += ch;
     }
 
-    if (result.back() == '/')
+    if (result.empty() || result.back() == '/')
         result += "index.html";
     return just(std::move(result));
 }
