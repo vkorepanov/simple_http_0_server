@@ -179,7 +179,8 @@ void handleConnection(int clientSocket, const std::string& dir) {
                                            , buffer + BUF_SIZE));
         if (parseResult == http::request_parser::good) {
             std::cout << "Request was accepted: " << request << std::endl;
-            return reply(clientSocket, request, dir);
+            reply(clientSocket, request, dir);
+            break;
         }
         else if (parseResult == http::request_parser::bad) {
             std::cerr << "Bad request: " << std::endl << buffer << std::endl;
