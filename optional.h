@@ -22,14 +22,19 @@ class optional
         explicit optional(T&& val) noexcept
             : initialized(true)
         {
-            new (&value) T(std::forward<T>(val));
+            new (&value) T(std::move<T>(val));
+        }
+        explicit optional(const T& val) noexcept
+            : initialized(true)
+        {
+            new (&value) T(val);
         }
 
         optional(const optional<T>& other) = default;
         optional(optional<T>&& other) = default;
         optional& operator=(optional<T>&& other) = default;
 
-        ~optional() {
+        ~optional() noexcept {
             if (initialized)
                 castValue()->~T();
         }
